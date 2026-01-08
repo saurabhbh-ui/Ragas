@@ -1,0 +1,42 @@
+# RAG Evaluation - Test Set Generation Requirements
+# UPDATED for RAGAS 0.2.x+ (Latest API)
+# Tested with Python 3.11+
+
+# Core RAG Evaluation Framework (LATEST VERSION)
+ragas>=0.2.0
+
+# LangChain Core
+langchain>=1.0.0
+langchain-core>=1.0.0
+langchain-openai>=1.0.0
+langchain-text-splitters>=1.0.0
+langchain-community>=0.4.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Visualization
+matplotlib>=3.8.0
+plotly>=5.18.0
+
+# Utilities
+tqdm>=4.66.0
+tiktoken>=0.5.0
+
+# Type Checking
+pydantic>=2.0.0
+
+# Document Loaders (Optional - install based on your needs)
+# pypdf>=4.0.0           # For PDF files
+# python-docx>=1.0.0     # For DOCX files  
+# openpyxl>=3.1.0        # For XLSX files
+
+# Jupyter Notebook (Optional)
+# jupyter>=1.0.0
+# notebook>=7.0.0
+# ipykernel>=6.0.0
+# ipywidgets>=8.0.0      # For tqdm progress bars
+
+# Note: This requirements file uses minimum versions (>=) for flexibility
+# The notebook is tested with RAGAS 0.4.2 and works with 0.2.x+ versions

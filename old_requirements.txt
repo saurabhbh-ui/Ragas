@@ -1,0 +1,5 @@
+ragas==0.1.21
+matplotlib==3.10.8
+dotenv==0.9.9
+pypdf==6.5.0
+plotly==6.5.0
