@@ -1,3 +1,13 @@
+from langgraph.graph import StateGraph, START, END
+from IPython.display import Image, display
+from typing_extensions import TypedDict, List, Annotated
+import operator
+from langchain_openai import AzureChatOpenAI
+from pydantic import BaseModel, Field
+from langchain_core.messages import HumanMessage, SystemMessage
+import os
+
+
 
 class Section(BaseModel):
     section_title: str = Field(default=None, description="Title of the Section")
@@ -15,14 +25,6 @@ class State(TypedDict):
     completed_sections: Annotated[list, operator.add]
     each_section: Section  # Add this field
 
-
-# Initialize the LLM (you need to configure this)
-llm = AzureChatOpenAI(
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    api_version="2024-02-15-preview",
-    deployment_name="your-deployment-name"
-)
 
 planner_llm = llm.with_structured_output(sections)
 
@@ -91,4 +93,6 @@ workflow.add_edge("synthesizer", END)
 chain = workflow.compile()
 result = chain.invoke({"topic": "digital fraud"})
 
-print(result["final_report"])
+
+from IPython.display import Markdown
+Markdown(result["final_report"])
