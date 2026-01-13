@@ -1,0 +1,81 @@
+from langgraph.graph import StateGraph, START, END
+from IPython.display import Image, display
+from typing_extensions import TypedDict, List, Annotated
+import operator
+from langchain_openai import AzureChatOpenAI
+from pydantic import BaseModel, Field
+from langchain_core.messages import HumanMessage, SystemMessage
+import os
+
+
+class Section(BaseModel):
+    section_title: str = Field(default=None, description = "Title of the Section")
+    section_content: str = Field(default=None, description="Brief overview of Cconcept to be covered in this section.")
+
+
+class sections(BaseModel):
+    sections: List[Section] = Field(default=None, description="List of sections for the course outline.")
+
+
+class State(TypedDict):
+    topic: str
+    final_report: str
+    sections: List[Section]
+    completed_sections: Annotated[
+        list, operator.add
+    ]
+
+planner_llm = llm.with_structured_output(sections)
+
+def generate_outline(state: State):
+    outline = planner_llm.invoke(f"Generate optimal sections for a report on topic : {state['topic']}. Please do follow report format with introduction, body and conclusion, refences etc.")
+    return {'sections': outline.sections}
+
+def write_report(state: State, each_section: Section):
+
+    messages = [SystemMessage(content=f"Please write a section for the report topic: {state['topic']} for the provided title and description. Please do not include preamble and use markdown formatting for the report."),
+    HumanMessage(content=f"Here is the title of Section: {each_section['section_title']} and the descrition for the Section : {each_section['section_content']}. Please create the full section")]
+    
+    report = llm.invoke(messages)
+
+    return {'completed_sections':[report.content]}
+
+
+
+def synthesizer(state: State):
+    """Synthesize full report from sections"""
+
+    # List of completed sections
+    completed_sections = state["completed_sections"]
+
+    # Format completed section to str to use as context for final sections
+    completed_report_sections = "\n\n---\n\n".join(completed_sections)
+
+    return {"final_report": completed_report_sections}
+
+
+from langgraph.types import Send
+
+
+# Conditional edge function to create llm_call workers that each write a section of the report
+def assign_workers(state: State):
+    """Assign a worker to each section in the plan"""
+
+    # Kick off section writing in parallel via Send() API
+    return [Send("write_report", {"each_section": s}) for s in state["sections"]]
+
+
+workflow = StateGraph(State)
+workflow.add_node("outline_node", generate_outline)
+workflow.add_node("write_report",write_report)
+workflow.add_node("synthesizer", synthesizer)
+
+workflow.add_edge(START, "outline_node")
+workflow.add_conditional_edges(
+    "outline_node", assign_workers, ["write_report"]
+)
+workflow.add_edge("write_report", "synthesizer")
+workflow.add_edge("synthesizer", END)
+
+chain = workflow.compile()
+result = chain.invoke({"topic":"digital fraud"})
